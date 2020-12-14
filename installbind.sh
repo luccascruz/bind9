@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                                                                                                           #! /bin/bash
+#!/bin/bash                                                                                                                                                                                                                                                                                                                                           #! /bin/bash
 
 echo "                                          # ############################################### #"
 echo "                                          #                                                 #"
@@ -18,8 +18,9 @@ choix=$(
    1     'Preparar Ambiente'               \
    2     'Instalar DNS Server e NTP'               \
    3     'Adicionar nova zona ao DNS '               \
-   4     'Editar Arquivo DNS Manualmente '               \
-   5     'Sair' )
+   4     'Adicionar novo host ao DNS '               \
+   5     'Editar Arquivo DNS Manualmente '               \
+   6     'Sair' )
 }
 
 
@@ -131,6 +132,32 @@ EOF
 
 }
 
+function ADDZONE {
+host=$( dialog --stdout --inputbox 'Insira o nome do host:   ' 0 0)
+ipnet=$( dialog --stdout --inputbox 'Insira os 3 primeiros octetos:   ' 0 0)
+iphost=$( dialog --stdout --inputbox 'Insira o ultimo Octeto do Host:   ' 0 0)
+
+cat << EOF >> /var/cache/bind/lookup.rr.zone
+
+$iphost	IN	PTR	$host.$zonename.
+EOF
+
+cat << EOF >> /var/cache/bind/$zonename.zone
+
+$host	IN	A	$ipnet.$ipnet
+EOF
+
+dialog \
+--title 'Sucesso' \
+--infobox '\nHost inserido na tabela DNS' \
+0 0
+}
+
+
+
+
+
+
 function EDITNAMED {
   clear
   nano /etc/bind/named.conf.local
@@ -174,9 +201,11 @@ case "$choix" in
       menu;;
     3)CZONE
       menu;;
-    4)EDITNAMED
+    4)ADDZONE
       menu;;
-    5)clear
+    5)EDITNAMED
+      menu;;
+    6)clear
 dialog                                         \
    --title 'Script Finalizado'                           \
    --infobox '\nDesenvolvido por Luccas Cruz'  \
